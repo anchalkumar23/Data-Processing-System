@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Defect Detection Dashboard | Visual Processing System</title>
+  <meta name="description" content="Real-time performance monitoring dashboard for the Automated Visual Data Processing System — live inference metrics, defect rates, and latency analytics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ── Top Navigation Bar ─────────────────────────────── -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <span class="brand-name">DefectVision</span>
+      <span class="brand-tag">v1.0</span>
+    </div>
+
+    <div class="topbar-center">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-label" id="statusLabel">Connecting...</span>
+    </div>
+
+    <div class="topbar-right">
+      <span class="refresh-label">Auto-refresh</span>
+      <span class="refresh-interval" id="refreshIndicator">1s</span>
+      <button class="btn-icon" id="btnTogglePause" title="Pause / Resume live updates">
+        <svg id="iconPause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+        </svg>
+        <svg id="iconPlay" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+          <polygon points="5,3 19,12 5,21"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main Layout ────────────────────────────────────── -->
+  <main class="layout">
+
+    <!-- ── KPI Cards Row ─────────────────────────────────── -->
+    <section class="kpi-row" aria-label="Key performance indicators">
+
+      <div class="kpi-card" id="kpiTotal">
+        <div class="kpi-icon kpi-icon--blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="valTotal">—</div>
+          <div class="kpi-label">Total Predictions</div>
+        </div>
+        <div class="kpi-trend" id="trendTotal"></div>
+      </div>
+
+      <div class="kpi-card" id="kpiDefect">
+        <div class="kpi-icon kpi-icon--orange">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="valDefect">—</div>
+          <div class="kpi-label">Defect Rate</div>
+        </div>
+        <div class="kpi-trend" id="trendDefect"></div>
+      </div>
+
+      <div class="kpi-card" id="kpiLatency">
+        <div class="kpi-icon kpi-icon--green">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="valLatency">—</div>
+          <div class="kpi-label">Avg Latency</div>
+        </div>
+        <div class="kpi-trend" id="trendLatency"></div>
+      </div>
+
+      <div class="kpi-card" id="kpiThroughput">
+        <div class="kpi-icon kpi-icon--purple">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="valThroughput">—</div>
+          <div class="kpi-label">Throughput / min</div>
+        </div>
+        <div class="kpi-trend" id="trendThroughput"></div>
+      </div>
+
+    </section>
+
+    <!-- ── Charts Row ────────────────────────────────────── -->
+    <section class="charts-row">
+
+      <!-- Defect Rate Timeline -->
+      <div class="chart-card chart-card--wide">
+        <div class="chart-header">
+          <div>
+            <h2 class="chart-title">Defect Rate Timeline</h2>
+            <p class="chart-subtitle">Rolling defect rate over the last 60 predictions</p>
+          </div>
+          <div class="chart-badge chart-badge--orange" id="badgeDefectRate">0.00%</div>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartDefectRate" aria-label="Defect rate timeline chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Latency Distribution -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <h2 class="chart-title">Latency Distribution</h2>
+            <p class="chart-subtitle">Inference time histogram (ms)</p>
+          </div>
+          <div class="chart-badge chart-badge--green" id="badgeP95">p95: —</div>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartLatencyHist" aria-label="Latency histogram chart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Bottom Row ────────────────────────────────────── -->
+    <section class="bottom-row">
+
+      <!-- Confidence Distribution (donut) -->
+      <div class="chart-card chart-card--narrow">
+        <div class="chart-header">
+          <div>
+            <h2 class="chart-title">Class Distribution</h2>
+            <p class="chart-subtitle">Normal vs Defective</p>
+          </div>
+        </div>
+        <div class="chart-body chart-body--donut">
+          <canvas id="chartDonut" aria-label="Class distribution donut chart"></canvas>
+          <div class="donut-centre">
+            <div class="donut-centre-val" id="donutCentreVal">—</div>
+            <div class="donut-centre-label">defect rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Predictions Table -->
+      <div class="chart-card chart-card--table">
+        <div class="chart-header">
+          <div>
+            <h2 class="chart-title">Recent Predictions</h2>
+            <p class="chart-subtitle">Last 20 inference calls</p>
+          </div>
+          <button class="btn-text" id="btnUploadDemo">+ Upload Image</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="pred-table" id="predTable" aria-label="Recent predictions table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Label</th>
+                <th>Confidence</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody id="predTableBody">
+              <tr class="table-empty"><td colspan="4">Waiting for predictions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Upload Panel (hidden by default) -->
+      <div class="upload-panel" id="uploadPanel" hidden>
+        <div class="chart-header">
+          <h2 class="chart-title">Test Inference</h2>
+          <button class="btn-icon" id="btnCloseUpload" title="Close">✕</button>
+        </div>
+        <div class="upload-area" id="uploadArea">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p>Drop an image here or <label class="upload-link" for="fileInput">browse</label></p>
+          <input type="file" id="fileInput" accept="image/*" hidden />
+        </div>
+        <div class="upload-result" id="uploadResult" hidden></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────── -->
+  <footer class="footer">
+    <span>Automated Visual Data Processing System &bull; ResNet-18 CNN &bull; ONNX Runtime</span>
+    <span class="footer-right">
+      <a href="/docs" target="_blank" rel="noopener" id="linkApiDocs">API Docs ↗</a>
+      &bull;
+      <a href="/redoc" target="_blank" rel="noopener">ReDoc ↗</a>
+    </span>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

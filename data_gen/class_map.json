@@ -1,0 +1,10 @@
+{
+  "0": "normal",
+  "1": "defective",
+  "classes": ["normal", "defective"],
+  "defect_subtypes": {
+    "scratch": "Linear surface abrasion",
+    "crack":   "Fracture or split in material",
+    "stain":   "Discolouration or contamination patch"
+  }
+}
