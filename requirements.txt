@@ -1,0 +1,54 @@
+# ============================================================
+# Automated Visual Data Processing System - Dependencies
+# Compatible with Python 3.13 on Windows (pre-built wheels).
+# For GPU support, replace torch/torchvision with the
+# CUDA-enabled builds from https://pytorch.org/get-started/
+# ============================================================
+
+# Core computer vision
+opencv-python==4.10.0.84
+numpy==2.1.3
+Pillow==11.1.0
+scikit-image==0.25.2
+
+# Deep learning
+# CPU-only wheels — works on any machine without CUDA drivers
+torch==2.6.0
+torchvision==0.21.0
+# Note: TensorFlow does not yet support Python 3.13.
+# All metrics/evaluation uses scikit-learn instead.
+
+# Data science / evaluation
+scikit-learn==1.6.1
+matplotlib==3.10.0
+seaborn==0.13.2
+
+# Augmentation
+albumentations==2.0.5
+
+# ONNX inference
+# Note: the 'onnx' package has no Python 3.13 Windows wheel — it needs C++ compilation.
+# onnxruntime (for serving) is sufficient. Graph validation is skipped if onnx is absent.
+onnxruntime==1.20.1      # swap for onnxruntime-gpu on CUDA machines
+
+# API
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20  # needed for file uploads in FastAPI
+pydantic==2.10.4
+
+# Config & utilities
+PyYAML==6.0.2
+tqdm==4.67.1
+colorlog==6.9.0
+psutil==6.1.1             # system resource monitoring
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.2
+httpx==0.28.1             # async test client for FastAPI
+
+# Dev tools
+black==25.1.0
+isort==5.13.2
+flake8==7.1.1

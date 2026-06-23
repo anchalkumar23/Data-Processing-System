@@ -1,0 +1,46 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Data (large files — don't commit raw images)
+data/raw/
+data/processed/
+
+# Model checkpoints (too large for git — use Git LFS or S3)
+checkpoints/*.pth
+checkpoints/*.onnx
+
+# Logs
+logs/
+*.log
+pipeline_run.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Testing
+.coverage
+coverage.xml
+.pytest_cache/
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+.agents/
+skills-lock.json
