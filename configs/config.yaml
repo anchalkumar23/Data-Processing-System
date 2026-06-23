@@ -1,0 +1,128 @@
+# ============================================================
+# Automated Visual Data Processing System - Configuration
+# All pipeline parameters live here so you can tweak things
+# without touching the source code.
+# ============================================================
+
+project:
+  name: "defect-detection-system"
+  version: "1.0.0"
+  description: "Industrial surface defect detection using CNN"
+
+# ── Dataset & paths ──────────────────────────────────────────
+paths:
+  raw_data:       "data/raw"
+  processed_data: "data/processed"
+  train_dir:      "data/processed/train"
+  val_dir:        "data/processed/val"
+  test_dir:       "data/processed/test"
+  checkpoints:    "checkpoints"
+  logs:           "logs"
+  onnx_model:     "checkpoints/model.onnx"
+
+# ── Dataset generation ───────────────────────────────────────
+data_gen:
+  image_size: [224, 224]       # width, height
+  num_train: 1600              # images per class in training set
+  num_val:   200
+  num_test:  200
+  classes:
+    - "normal"
+    - "defective"
+  # Defect types to synthesise (scratches, cracks, stains)
+  defect_types: ["scratch", "crack", "stain"]
+  random_seed: 42
+
+# ── Preprocessing ────────────────────────────────────────────
+preprocessing:
+  noise_reduction:
+    method: "gaussian"         # gaussian | median | bilateral
+    kernel_size: 5
+    sigma: 1.0
+    # Bilateral keeps edges sharp — useful for crack detection
+    bilateral_d: 9
+    bilateral_sigma_color: 75
+    bilateral_sigma_space: 75
+
+  normalization:
+    method: "standardize"      # minmax | standardize
+    # ImageNet stats — works well even for synthetic data
+    mean: [0.485, 0.456, 0.406]
+    std:  [0.229, 0.224, 0.225]
+
+  augmentation:
+    enabled: true
+    horizontal_flip: true
+    vertical_flip: false
+    rotation_limit: 15         # degrees
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+    elastic_alpha: 120
+    elastic_sigma: 6.0
+    # Probability each augmentation is applied
+    p_flip: 0.5
+    p_rotate: 0.4
+    p_color_jitter: 0.3
+    p_elastic: 0.2
+
+# ── Model / Training ─────────────────────────────────────────
+training:
+  backbone: "resnet18"         # resnet18 | resnet34 | efficientnet_b0
+  num_classes: 2
+  pretrained: true             # use ImageNet weights
+  freeze_backbone: false       # fine-tune the whole network
+
+  # Hyperparameters
+  batch_size: 32
+  num_epochs: 30
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  lr_scheduler: "cosine"       # step | cosine | plateau
+  lr_patience: 5               # used only with 'plateau'
+
+  # Early stopping
+  early_stopping: true
+  patience: 8
+  min_delta: 0.001
+
+  # Device
+  device: "cuda"               # cuda | cpu  (auto-falls back to cpu)
+  num_workers: 4               # dataloader workers
+  pin_memory: true
+
+  # Checkpointing
+  save_best_only: true
+  checkpoint_metric: "val_accuracy"
+
+# ── ONNX Export ──────────────────────────────────────────────
+export:
+  opset_version: 17
+  dynamic_axes: true           # allows variable batch sizes
+  input_name: "input"
+  output_name: "output"
+  fp16: false                  # set true if deploying on GPU with TensorRT
+
+# ── Inference / Serving ──────────────────────────────────────
+inference:
+  confidence_threshold: 0.5
+  max_batch_size: 16
+  # Latency budget in milliseconds (for monitoring alerts)
+  latency_warn_ms: 50
+  latency_error_ms: 200
+  providers:
+    - "CUDAExecutionProvider"
+    - "CPUExecutionProvider"
+
+# ── API ──────────────────────────────────────────────────────
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  reload: false
+  # How many recent predictions to keep in memory for the dashboard
+  metrics_buffer_size: 500
+
+# ── Dashboard ────────────────────────────────────────────────
+dashboard:
+  poll_interval_ms: 1000       # how often the UI polls /metrics
+  chart_history: 60            # seconds of history shown in charts
